@@ -1,2 +1,2 @@
-# conclave-cli
-CLI for CiCi deployment of Conclave
+# conclave-simulator
+Interactive web-based simulator for the Conclave framework.
