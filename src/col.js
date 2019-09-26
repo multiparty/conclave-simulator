@@ -1,8 +1,6 @@
-
 Set.prototype.intersection = function(otherSet)
 {
 	let intersectionSet = new Set();
-
 	for(let elem of otherSet)
 	{
 		if(this.has(elem))

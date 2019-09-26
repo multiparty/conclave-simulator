@@ -1,6 +1,3 @@
-const Col = require('./col.js');
-const Rel = require('./rel.js');
-
 class Node {
 
 	constructor(outRel) {
@@ -16,10 +13,10 @@ class Node {
 	isRoot() {
 		return this.parents.size === 0;
 	}
-
 }
 
 class Create extends Node {
+
 	constructor(outRel) {
 		super(outRel);
 
@@ -27,16 +24,8 @@ class Create extends Node {
 	}
 }
 
-class Store extends Node {
-	constructor(outRel, parent) {
-		super(outRel);
-
-		this.name = "store";
-		this.parents.add(parent);
-	}
-}
-
 class Open extends Node {
+
 	constructor(outRel, parent) {
 		super(outRel);
 
@@ -45,16 +34,8 @@ class Open extends Node {
 	}
 }
 
-class Close extends Node {
-	constructor(outRel, parent) {
-		super(outRel);
-
-		this.name = "close";
-		this.parents.add(parent);
-	}
-}
-
 class Concat extends Node {
+
 	constructor(outRel, parents) {
 		super(outRel);
 
@@ -68,6 +49,7 @@ class Concat extends Node {
 }
 
 class Aggregate extends Node {
+
 	constructor(outRel, parent, groupCols, aggCol, aggregator) {
 		super(outRel);
 
@@ -80,6 +62,7 @@ class Aggregate extends Node {
 }
 
 class Project extends Node {
+
 	constructor(outRel, parent, selectedCols) {
 		super(outRel);
 
@@ -90,6 +73,7 @@ class Project extends Node {
 }
 
 class Multiply extends Node {
+
 	constructor(outRel, parent, targetCol, operands) {
 		super(outRel);
 
@@ -101,6 +85,7 @@ class Multiply extends Node {
 }
 
 class Divide extends Node {
+
 	constructor(outRel, parent, targetCol, operands) {
 		super(outRel);
 
@@ -112,6 +97,7 @@ class Divide extends Node {
 }
 
 class Join extends Node {
+
 	constructor(outRel, leftParent, rightParent, leftJoinCols, rightJoinCols) {
 		super(outRel);
 
@@ -124,7 +110,21 @@ class Join extends Node {
 }
 
 class Dag {
+
 	constructor(roots) {
 		this.roots = roots;
 	}
 }
+
+module.exports = {
+	Node: Node,
+	Create: Create,
+	Open: Open,
+	Concat: Concat,
+	Aggregate: Aggregate,
+	Project: Project,
+	Multiply: Multiply,
+	Divide: Divide,
+	Join: Join,
+	Dag: Dag
+};
