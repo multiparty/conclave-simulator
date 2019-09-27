@@ -114,6 +114,29 @@ class Dag {
 	constructor(roots) {
 		this.roots = roots;
 	}
+
+	_recursiveVisit(node, visited) {
+
+		if (!visited.has(node)) {
+			this._dfs_visit(node, visited)
+		}
+	}
+
+	_dfs_visit(node, visited) {
+
+		visited.add(node);
+		node.children.forEach(c => this._recursiveVisit(c, visited));
+
+		return visited;
+	}
+
+	dfs_visit() {
+
+		let visited = new Set();
+		this.roots.forEach(r => this._dfs_visit(r, visited));
+
+		return visited;
+	}
 }
 
 module.exports = {
