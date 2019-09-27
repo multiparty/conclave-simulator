@@ -32,12 +32,12 @@ function create(relName, columns, storedWith) {
 		let thisCol = columns[i];
 
 		cols.push(
-			col.Column(relName, thisCol[0], i, thisCol[1], thisCol[2]));
+			new col.Column(relName, thisCol[0], i, thisCol[1], thisCol[2]));
 	}
 
-	let outRel = rel.Relation(relName, cols, storedWith);
+	let outRel = new rel.Relation(relName, cols, storedWith);
 
-	return dag.Create(outRel);
+	return new dag.Create(outRel);
 }
 
 function _open(inputOpNode, outputName, targetParty) {
@@ -47,7 +47,7 @@ function _open(inputOpNode, outputName, targetParty) {
 	outRel.storedWith = targetParty;
 	outRel.rename(outputName);
 
-	let openOp = dag.Open(outRel, inputOpNode);
+	let openOp = new dag.Open(outRel, inputOpNode);
 	inputOpNode.children.add(openOp);
 
 	return openOp;
@@ -59,14 +59,14 @@ function collect(inputOpNode, outputName, targetParty) {
 
 function concat(inputOpNodes, outputName, columnNames) {
 
-		if (inputOpNodes.length < 2)
-			throw "ERROR: Must pass at least two input nodes to concat.\n"
+	if (inputOpNodes.length < 2)
+		throw "ERROR: Must pass at least two input nodes to concat.\n";
 
 	let inRels = [];
-	let inNode;
-	for (inNode in inputOpNodes) {
-		inRels.push(inNode.outRel);
+	for (let i = 0; i < inputOpNodes.length; i++) {
+		inRels.push(inputOpNodes[i].outRel);
 	}
+
 
 	let numCols = inRels[0].columns.length;
 	for (let i = 0; i < inRels.length; i++) {
@@ -79,7 +79,7 @@ function concat(inputOpNodes, outputName, columnNames) {
 			throw "ERROR: Column names array must have size equal to number of columns.\n"
 	}
 
-	let outRelCols = copy(inRels[0].columns);
+	let outRelCols = [...inRels[0].columns];
 
 	for (let i = 0; i < outRelCols.length; i++) {
 		if (columnNames) {
@@ -89,20 +89,19 @@ function concat(inputOpNodes, outputName, columnNames) {
 	}
 
 	let inStoredWith = [];
-	let inRel;
-	for (inRel in inRels) {
-		inStoredWith.push(inRel.storedWith);
+	for (let i = 0; i < inRels.length; i++) {
+		inStoredWith.push(inRels[i].storedWith);
 	}
+
 	let outStoredWith = Array.prototype.setUnion(inStoredWith);
 
-	let outRel = rel.Relation(outputName, outRelCols, outStoredWith);
+	let outRel = new rel.Relation(outputName, outRelCols, outStoredWith);
 	outRel.updateColumns();
 
-	let op = dag.Concat(outRel, inputOpNodes);
+	let op = new dag.Concat(outRel, inputOpNodes);
 
-	let inputOpNode;
-	for (inputOpNode in inputOpNodes) {
-		inputOpNode.children.add(op);
+	for (let i = 0; i < inputOpNodes.length; i++) {
+		inputOpNodes[i].children.add(op)
 	}
 
 	return op;
@@ -111,7 +110,11 @@ function concat(inputOpNodes, outputName, columnNames) {
 function aggregate(inputOpNode, outputName, groupColNames, aggColName, aggregator, aggOutColName) {
 
 	let inRel = inputOpNode.outRel;
-	let inCols = inRel.columns;
+
+	let inCols = [];
+	for (let i = 0; i < inRel.columns.length; i++) {
+		inCols.push(inRel.columns[i]);
+	}
 
 	let groupCols = [];
 	for (let i = 0; i < groupColNames.length; i++) {
@@ -135,10 +138,10 @@ function aggregate(inputOpNode, outputName, groupColNames, aggColName, aggregato
 	}
 	outRelCols.push(copy(aggOutCol));
 
-	let outRel = rel.Relation(outputName, outRelCols, copy(inRel.storedWith));
+	let outRel = new rel.Relation(outputName, outRelCols, new Set(inRel.storedWith));
 	outRel.updateColumns();
 
-	let op = dag.Aggregate(outRel, inputOpNode, groupCols, aggCol, aggregator);
+	let op = new dag.Aggregate(outRel, inputOpNode, groupCols, aggCol, aggregator);
 	inputOpNode.children.add(op);
 
 	return op;
@@ -162,10 +165,10 @@ function project(inputOpNode, outputName, selectedColNames) {
 		outRelCols.push(pushedCol);
 	}
 
-	let outRel = rel.Relation(outputName, outRelCols, copy(inRel.storedWith));
+	let outRel = new rel.Relation(outputName, outRelCols, new Set(inRel.storedWith));
 	outRel.updateColumns();
 
-	let op = dag.Project(outRel, inputOpNode, outRelCols);
+	let op = new dag.Project(outRel, inputOpNode, outRelCols);
 	inputOpNode.children.add(op);
 
 	return op;
@@ -191,14 +194,14 @@ function multiply(inputOpNode, outputName, targetColName, operands) {
 	if (targetColName === operands[0].name) {
 		targetCol = copy(utils.find(inRel.columns, targetColName));
 	} else {
-		targetCol = col.Column(outputName, targetColName, inRel.columns.length, "INTEGER", new Set());
+		targetCol = new col.Column(outputName, targetColName, inRel.columns.length, "INTEGER", new Set());
 		outRelCols.append(targetCol)
 	}
 
-	let outRel = rel.Relation(outputName, outRelCols, copy(inRel.storedWith));
+	let outRel = new rel.Relation(outputName, outRelCols, copy(inRel.storedWith));
 	outRel.updateColumns();
 
-	let op = dag.Multiply(outRel, inputOpNode, targetCol, operands);
+	let op = new dag.Multiply(outRel, inputOpNode, targetCol, operands);
 	inputOpNode.children.add(op);
 
 	return op;

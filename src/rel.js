@@ -9,14 +9,9 @@ class Relation{
 	rename(newName) {
 		this.name = newName;
 
-		let col;
-		for (col in this.columns) {
-			col.relName = newName;
+		for (let i = 0; i < this.columns.length; i++) {
+			this.columns[i].relName = newName;
 		}
-	}
-
-	isShared() {
-		return this.storedWith.length > 1;
 	}
 
 	updateColumnIndexes() {
@@ -28,9 +23,8 @@ class Relation{
 	updateColumns() {
 		this.updateColumnIndexes();
 
-		let col;
-		for (col in self.columns) {
-			col.relName = this.name;
+		for (let i = 0; i < this.columns.length; i++) {
+			this.columns[i].relName = this.name;
 		}
 	}
 
