@@ -177,7 +177,7 @@ function project(inputOpNode, outputName, selectedColNames) {
 function multiply(inputOpNode, outputName, targetColName, operands) {
 
 	let inRel = inputOpNode.outRel;
-	let outRelCols = copy(inRel.columns);
+	let outRelCols = [...inRel.columns];
 
 	let ops = [];
 	for (let i = 0; i < operands.length; i++) {
@@ -207,6 +207,119 @@ function multiply(inputOpNode, outputName, targetColName, operands) {
 	return op;
 }
 
+function divide(inputOpNode, outputName, targetColName, operands) {
+
+	let inRel = inputOpNode.outRel;
+	let outRelCols = [...inRel.columns];
+
+	let ops = [];
+	for (let i = 0; i < operands.length; i++) {
+		if (typeof(operands[i] === "string")) {
+			ops.append(utils.find(inRel.columns, operands[i]))
+		} else if (typeof(operands[i]) === "number") {
+			ops.append(operands[i]);
+		} else {
+			throw `ERROR: Unsupported operand ${operands[i]} \n`;
+		}
+	}
+
+	let targetCol;
+	if (targetColName === operands[0].name) {
+		targetCol = copy(utils.find(inRel.columns, targetColName));
+	} else {
+		targetCol = new col.Column(outputName, targetColName, inRel.columns.length, "INTEGER", new Set());
+		outRelCols.append(targetCol)
+	}
+
+	let outRel = new rel.Relation(outputName, outRelCols, copy(inRel.storedWith));
+	outRel.updateColumns();
+
+	let op = new dag.Divide(outRel, inputOpNode, targetCol, operands);
+	inputOpNode.children.add(op);
+
+	return op;
+}
+
+function colsFromRel(startIdx, relation, keyColIdxs, outputName) {
+
+	let resultCols = [];
+
+	for (let i = 0; i < relation.columns.length; i++) {
+		let thisCol = relation.columns[i];
+
+		if (keyColIdxs.includes(thisCol.idx)) {
+			let newCol =
+				new col.Column(outputName, thisCol.name, i + startIdx - keyColIdxs.length, thisCol.typeStr, new Set())
+			resultCols.push(newCol);
+		}
+	}
+
+	return resultCols;
+}
+
+function join(leftInputNode, rightInputNode, outputName, leftColNames, rightColNames) {
+
+	if (leftColNames.length !== rightColNames.length)
+		throw `Error: Join column arrays must have equal length.\n`;
+
+	let leftInRel = leftInputNode.outRel;
+	let rightInRel = rightInputNode.outRel;
+
+	let leftCols = leftInRel.columns;
+	let rightCols = rightInRel.columns;
+
+	let leftJoinCols = [];
+	for (let i = 0; i < leftColNames.length; i++) {
+		let thisCol = utils.find(leftCols, leftColNames[i]);
+
+		if (thisCol === null)
+			throw `Error: Column ${leftColNames[i]} not found.\n`;
+
+		leftJoinCols.push(thisCol);
+	}
+
+	let rightJoinCols = [];
+	for (let i = 0; i < rightColNames.length; i++) {
+		let thisCol = utils.find(rightCols, rightColNames[i]);
+
+		if (thisCol === null)
+			throw `Error: Column ${rightColNames[i]} not found.\n`;
+
+		rightJoinCols.push(thisCol);
+	}
+
+	let outKeyCols = [];
+	for (let i = 0; i < leftJoinCols.length; i++) {
+		outKeyCols.push(new col.Column(outputName, leftJoinCols[i].name, i, leftJoinCols.typeStr, new Set()));
+	}
+
+	let startIdx = outKeyCols.length;
+	let continueIdx = leftCols.length;
+
+	let leftKeyColIdxs = [];
+	let rightKeyColIdxs = [];
+	for (let i = 0; i < leftJoinCols.length; i++) {
+		leftKeyColIdxs.push(leftJoinCols[i].idx);
+		rightKeyColIdxs.push(rightJoinCols[i].idx);
+	}
+
+	let leftOutRelCols = colsFromRel(startIdx, leftInRel, leftKeyColIdxs, outputName);
+	let rightOutRelCols = colsFromRel(continueIdx, rightInRel, rightKeyColIdxs, outputName);
+
+	let outRelCols = outKeyCols.concat(leftOutRelCols, rightOutRelCols);
+	let outStoredWith = Array.prototype.setUnion([leftInRel.storedWith, rightInRel.storedWith]);
+
+	let outRel = new rel.Relation(outputName, outRelCols, outStoredWith);
+	outRel.updateColumns();
+
+	let op = new dag.Join(outRel, leftInputNode, rightInputNode, leftJoinCols, rightJoinCols);
+
+	leftInputNode.children.add(op);
+	rightInputNode.children.add(op);
+
+	return op;
+}
+
 
 module.exports = {
 	create: create,
@@ -214,6 +327,7 @@ module.exports = {
 	concat: concat,
 	aggregate: aggregate,
 	project: project,
-	multiply: multiply
+	multiply: multiply,
+	divide: divide,
+	join: join
 };
-
