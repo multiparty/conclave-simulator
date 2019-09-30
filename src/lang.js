@@ -4,8 +4,11 @@ const col = require('./col.js');
 const utils = require('./utils.js');
 
 
-Array.prototype.setUnion = function(setArray)
-{
+Array.prototype.setUnion = function(setArray) {
+	/*
+	Given an array of sets, construct their union.
+	 */
+
 	let _union = setArray[0];
 	for (let i = 1; i < setArray.length; i++)
 	{
@@ -19,11 +22,20 @@ Array.prototype.setUnion = function(setArray)
 	return _union;
 };
 
+
 function copy(obj) {
+	/*
+	Return a deep copy of an object.
+	 */
+
 	return Object.assign(Object.create(Object.getPrototypeOf(obj)), obj);
 }
 
+
 function create(relName, columns, storedWith) {
+	/*
+	Construct a Create node.
+	 */
 
 	let cols = [];
 
@@ -40,7 +52,11 @@ function create(relName, columns, storedWith) {
 	return new dag.Create(outRel);
 }
 
+
 function _open(inputOpNode, outputName, targetParty) {
+	/*
+	Construct an Open node whose storedWith set is the targetParty.
+	 */
 
 	let outRel = copy(inputOpNode.outRel);
 
@@ -53,11 +69,19 @@ function _open(inputOpNode, outputName, targetParty) {
 	return openOp;
 }
 
+
 function collect(inputOpNode, outputName, targetParty) {
+	/*
+	Collect the output data of a computation. Returns an Open node.
+	 */
+
 	_open(inputOpNode, outputName, targetParty);
 }
 
-function concat(inputOpNodes, outputName, columnNames) {
+function concatenate(inputOpNodes, outputName, columnNames) {
+	/*
+	Concatenate two horizontally partitioned datasets.
+	 */
 
 	if (inputOpNodes.length < 2)
 		throw "ERROR: Must pass at least two input nodes to concat.\n";
@@ -108,6 +132,9 @@ function concat(inputOpNodes, outputName, columnNames) {
 }
 
 function aggregate(inputOpNode, outputName, groupColNames, aggColName, aggregator, aggOutColName) {
+	/*
+	Construct an output Relation/Node pair whose columns are the [groupCols, aggCol].
+	 */
 
 	let inRel = inputOpNode.outRel;
 
@@ -148,6 +175,9 @@ function aggregate(inputOpNode, outputName, groupColNames, aggColName, aggregato
 }
 
 function project(inputOpNode, outputName, selectedColNames) {
+	/*
+	Project out one or more columns in the order indicated by selectedColNames.
+	 */
 
 	let inRel = inputOpNode.outRel;
 	let inCols = inRel.columns;
@@ -175,6 +205,13 @@ function project(inputOpNode, outputName, selectedColNames) {
 }
 
 function multiply(inputOpNode, outputName, targetColName, operands) {
+	/*
+	Multiply a column by one or more columns, a scalar, or both. All values in the operands array will
+	be multiplied together to create the resulting output column. If the first value of operands is equal
+	to the targetColName, then that column will be operated upon in place and included in the output. Else,
+	a new column will be constructed whose name will be targetColName, and the product of the operands array
+	will be stored in that column.
+	 */
 
 	let inRel = inputOpNode.outRel;
 	let outRelCols = [...inRel.columns];
@@ -182,9 +219,9 @@ function multiply(inputOpNode, outputName, targetColName, operands) {
 	let ops = [];
 	for (let i = 0; i < operands.length; i++) {
 		if (typeof(operands[i] === "string")) {
-			ops.append(utils.find(inRel.columns, operands[i]))
+			ops.push(utils.find(inRel.columns, operands[i]))
 		} else if (typeof(operands[i]) === "number") {
-			ops.append(operands[i]);
+			ops.push(operands[i]);
 		} else {
 			throw `ERROR: Unsupported operand ${operands[i]} \n`;
 		}
@@ -195,7 +232,7 @@ function multiply(inputOpNode, outputName, targetColName, operands) {
 		targetCol = copy(utils.find(inRel.columns, targetColName));
 	} else {
 		targetCol = new col.Column(outputName, targetColName, inRel.columns.length, "INTEGER", new Set());
-		outRelCols.append(targetCol)
+		outRelCols.push(targetCol)
 	}
 
 	let outRel = new rel.Relation(outputName, outRelCols, copy(inRel.storedWith));
@@ -208,6 +245,10 @@ function multiply(inputOpNode, outputName, targetColName, operands) {
 }
 
 function divide(inputOpNode, outputName, targetColName, operands) {
+	/*
+	Divide a column by one or more columns, a scalar, or both. The syntax for the operands array and
+	targetColName for this method is identical to the multiply() method above.
+	 */
 
 	let inRel = inputOpNode.outRel;
 	let outRelCols = [...inRel.columns];
@@ -215,9 +256,9 @@ function divide(inputOpNode, outputName, targetColName, operands) {
 	let ops = [];
 	for (let i = 0; i < operands.length; i++) {
 		if (typeof(operands[i] === "string")) {
-			ops.append(utils.find(inRel.columns, operands[i]))
+			ops.push(utils.find(inRel.columns, operands[i]))
 		} else if (typeof(operands[i]) === "number") {
-			ops.append(operands[i]);
+			ops.push(operands[i]);
 		} else {
 			throw `ERROR: Unsupported operand ${operands[i]} \n`;
 		}
@@ -228,7 +269,7 @@ function divide(inputOpNode, outputName, targetColName, operands) {
 		targetCol = copy(utils.find(inRel.columns, targetColName));
 	} else {
 		targetCol = new col.Column(outputName, targetColName, inRel.columns.length, "INTEGER", new Set());
-		outRelCols.append(targetCol)
+		outRelCols.push(targetCol)
 	}
 
 	let outRel = new rel.Relation(outputName, outRelCols, copy(inRel.storedWith));
@@ -241,15 +282,19 @@ function divide(inputOpNode, outputName, targetColName, operands) {
 }
 
 function colsFromRel(startIdx, relation, keyColIdxs, outputName) {
+	/*
+	Extract columns whose idx is not in the keyColIdxs set and construct new
+	columns accordingly. Returns an array of the newly constructed columns.
+	 */
 
 	let resultCols = [];
 
 	for (let i = 0; i < relation.columns.length; i++) {
 		let thisCol = relation.columns[i];
 
-		if (keyColIdxs.includes(thisCol.idx)) {
+		if (!keyColIdxs.includes(thisCol.idx)) {
 			let newCol =
-				new col.Column(outputName, thisCol.name, i + startIdx - keyColIdxs.length, thisCol.typeStr, new Set())
+				new col.Column(outputName, thisCol.name, i + startIdx - keyColIdxs.length, thisCol.typeStr, new Set());
 			resultCols.push(newCol);
 		}
 	}
@@ -258,6 +303,10 @@ function colsFromRel(startIdx, relation, keyColIdxs, outputName) {
 }
 
 function join(leftInputNode, rightInputNode, outputName, leftColNames, rightColNames) {
+	/*
+	Constructs a Relation/Node pair consisting of the result of a join over the leftColNames
+	and rightColNames arrays with respect to the two input nodes.
+	 */
 
 	if (leftColNames.length !== rightColNames.length)
 		throw `Error: Join column arrays must have equal length.\n`;
@@ -324,7 +373,7 @@ function join(leftInputNode, rightInputNode, outputName, leftColNames, rightColN
 module.exports = {
 	create: create,
 	collect: collect,
-	concat: concat,
+	concatenate: concatenate,
 	aggregate: aggregate,
 	project: project,
 	multiply: multiply,

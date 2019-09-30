@@ -1,17 +1,16 @@
 class Node {
 
 	constructor(outRel) {
+		this.name = "node";
 		this.outRel = outRel;
 		this.children = new Set();
 		this.parents = new Set();
 	}
 
-	isLeaf() {
-		return this.children.size === 0;
-	}
-
-	isRoot() {
-		return this.parents.size === 0;
+	toStr() {
+		let childStr = Array.from(this.children).map(c => c.name).join(", ");
+		let parentStr = Array.from(this.parents).map(p => p.name).join(", ");
+		return `name: ${this.name}\nchildren: ${childStr}\nparents: ${parentStr}`;
 	}
 }
 
@@ -41,9 +40,9 @@ class Concat extends Node {
 
 		this.name = "concat";
 
-		let p;
-		for (p in parents) {
-			this.parents.add(p);
+		for (let i = 0; i < parents.length; i++)
+		{
+			this.parents.add(parents[i])
 		}
 	}
 }
@@ -137,10 +136,70 @@ class Dag {
 
 		return visited;
 	}
+
+	get_all_nodes() {
+
+		return this.dfs_visit();
+	}
+
+	_top_sort_visit(node, marked, tempMarked, unmarked, ordered) {
+
+		if (tempMarked.has(node)) throw `Error: Not a Dag - node ${node} was in ${tempMarked}.\n`;
+
+		if (!marked.has(node)) {
+			if (unmarked.includes(node)) {
+				for (let i = 0; i < unmarked.length; i++) {
+					if (unmarked[i] === node) {
+						unmarked.splice(i, 1);
+					}
+				}
+			}
+
+			tempMarked.add(node);
+			let children = Array.from(node.children)
+				.sort((a, b) => (a.outRel.name > b.outRel.name) ? 1: -1);
+
+			for (let i = 0; i < children.length; i++) {
+				this._top_sort_visit(children[i], marked, tempMarked, unmarked, ordered)
+			}
+
+			marked.add(node);
+			unmarked.push(node);
+			tempMarked.delete(node);
+			ordered.unshift(node);
+		}
+	}
+
+	top_sort() {
+
+		let unmarked = Array.from(this.get_all_nodes())
+			.sort((a, b) => (a.outRel.name > b.outRel.name) ? 1 : -1);
+
+		let marked = new Set();
+		let tempMarked = new Set();
+		let ordered = [];
+
+		while (unmarked.length > 0) {
+			let node = unmarked.pop();
+			this._top_sort_visit(node, marked, tempMarked, unmarked, ordered);
+		}
+
+		return ordered;
+	}
+
+	toStr() {
+		let topSorted = this.top_sort();
+		let retArr = [];
+
+		for (let i = 0; i < topSorted.length; i++) {
+			retArr.push(topSorted[i].toStr());
+		}
+
+		return retArr.join("\n\n")
+	}
 }
 
 module.exports = {
-	Node: Node,
 	Create: Create,
 	Open: Open,
 	Concat: Concat,
