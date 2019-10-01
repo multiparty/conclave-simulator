@@ -1,6 +1,6 @@
-const cc = require('.././src/lang.js');
-const dag = require('.././src/dag.js');
-const utils = require('.././src/utils.js');
+const cc = require('../../src/lang.js');
+const dag = require('../../src/dag.js');
+const utils = require('../../src/utils.js');
 
 
 function workflow() {
@@ -18,10 +18,9 @@ function workflow() {
 	let inOne = cc.create("inOne", colsInOne, new Set([1]));
 	let inTwo = cc.create("inTwo", colsInTwo, new Set([2]));
 
-	let c = cc.concatenate([inOne, inTwo], "con", ["a", "b"]);
-	let d = cc.divide(c, "mult", "b", ["b", 10]);
+	let j = cc.join(inOne, inTwo, "joined", ["a"], ["a"]);
 
-	let o = cc.collect(d, "opened", 1);
+	let o = cc.collect(j, "opened", 1);
 
 	return new Set([inOne, inTwo]);
 }
@@ -29,25 +28,21 @@ function workflow() {
 let d = new dag.Dag(workflow());
 
 if (d.toStr() === "name: create\n" +
-	"children: concat\n" +
+	"children: join\n" +
 	"parents: \n" +
 	"\n" +
 	"name: create\n" +
-	"children: concat\n" +
+	"children: join\n" +
 	"parents: \n" +
 	"\n" +
-	"name: concat\n" +
-	"children: divide\n" +
-	"parents: create, create\n" +
-	"\n" +
-	"name: divide\n" +
+	"name: join\n" +
 	"children: open\n" +
-	"parents: concat\n" +
+	"parents: create, create\n" +
 	"\n" +
 	"name: open\n" +
 	"children: \n" +
-	"parents: divide") {
-	console.log("testDiv.js Passed.\n");
+	"parents: join") {
+	console.log("testJoin.js Passed.\n")
 } else {
-	console.log("testDiv.js Failed.\n")
+	console.log("testJoin.js Failed");
 }

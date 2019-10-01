@@ -1,6 +1,6 @@
-const cc = require('.././src/lang.js');
-const dag = require('.././src/dag.js');
-const utils = require('.././src/utils.js');
+const cc = require('../../src/lang.js');
+const dag = require('../../src/dag.js');
+const utils = require('../../src/utils.js');
 
 
 function workflow() {
