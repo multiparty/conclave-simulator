@@ -235,7 +235,7 @@ function multiply(inputOpNode, outputName, targetColName, operands) {
 		outRelCols.push(targetCol)
 	}
 
-	let outRel = new rel.Relation(outputName, outRelCols, copy(inRel.storedWith));
+	let outRel = new rel.Relation(outputName, outRelCols, new Set(inRel.storedWith));
 	outRel.updateColumns();
 
 	let op = new dag.Multiply(outRel, inputOpNode, targetCol, operands);
@@ -272,7 +272,7 @@ function divide(inputOpNode, outputName, targetColName, operands) {
 		outRelCols.push(targetCol)
 	}
 
-	let outRel = new rel.Relation(outputName, outRelCols, copy(inRel.storedWith));
+	let outRel = new rel.Relation(outputName, outRelCols, new Set(inRel.storedWith));
 	outRel.updateColumns();
 
 	let op = new dag.Divide(outRel, inputOpNode, targetCol, operands);

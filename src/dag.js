@@ -101,10 +101,13 @@ class Join extends Node {
 		super(outRel);
 
 		this.name = "join";
-		this.parents.add(leftParent);
-		this.parents.add(rightParent);
+		this.leftParent = leftParent;
+		this.rightParent = rightParent;
 		this.leftJoinCols = leftJoinCols;
 		this.rightJoinCols = rightJoinCols;
+
+		this.parents.add(leftParent);
+		this.parents.add(rightParent);
 	}
 }
 
