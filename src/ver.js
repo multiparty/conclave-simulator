@@ -8,6 +8,9 @@ class Verify {
 	}
 
 	_findRoot() {
+		/*
+		Identify which root node in the workflow corresponds to the policy provided.
+		 */
 
 		let nodeName = this.policy.fileName;
 		let rootNodes = this.protocol.roots;
@@ -24,6 +27,10 @@ class Verify {
 	}
 
 	_handleAggregate(column, node) {
+		/*
+		Determine if column in the set {agg_col, group_cols}.
+    Update idx / name accordingly, and verify the column if necessary.
+		 */
 
 		if (node.aggCol.name === column.name) {
 			let newCol = node.outRel.columns.slice(-1)[0];
@@ -46,6 +53,10 @@ class Verify {
 	}
 
 	_handleConcat(column, node) {
+		/*
+    Concat relations can rename columns, so update
+    column name by its idx in the output relation.
+		 */
 
 		column.name = node.outRel.columns[column.idx].name;
 
@@ -53,6 +64,10 @@ class Verify {
 	}
 
 	_handleProject(column, node) {
+		/*
+    Project relations can involve shuffling of columns
+    (but not renaming), so update column idx by name.
+		 */
 
 		for (let i = 0; i < node.outRel.columns.length; i++) {
 			if (node.outRel.columns[i].name === column.name) {
@@ -73,6 +88,9 @@ class Verify {
 	}
 
 	_rewriteColumnForLeft(column, node) {
+		/*
+		Update column idx according to it's idx in the join node's output relation.
+		 */
 
 		let numColsInLeft = node.leftParent.outRel.columns.length;
 
@@ -87,6 +105,9 @@ class Verify {
 	}
 
 	_rewriteColumnForRight(column, node) {
+		/*
+		Determine where this column is in the output relation and overwrite it's name / idx as needed.
+		 */
 
 		let rightJoinCols = node.rightJoinCols.map(c => c.name);
 		let rightNonJoinCols = [];
@@ -119,6 +140,9 @@ class Verify {
 	}
 
 	_handleJoin(column, node) {
+		/*
+		Map column name / idx from appropriate column in output rel to this column.
+		 */
 
 		let leftParentName = node.leftParent.outRel.name;
 		let rightParentName = node.rightParent.outRel.name;
@@ -136,6 +160,11 @@ class Verify {
 	}
 
 	_continueTraversal(column, node) {
+		/*
+		Continue traversing the DAG. Only handling cases where the node
+    is either terminal or has exactly one child for now, as conclave
+    only handles single-path workflows.
+		 */
 
 		column.updateRelName(node);
 
@@ -150,6 +179,13 @@ class Verify {
 	}
 
 	_verifyColumn(column, node) {
+		/*
+		For a given column, traverse the DAG and determine if the
+    workflow is compatible with it's policy.
+
+    TODO: might be able to work something out with the exploit in project() here -
+    could force the reveal attribute to false on columns involved in mult/div ops.
+		 */
 
 		if (column.reveal) {
 			return column.verify();
@@ -164,7 +200,7 @@ class Verify {
 		} else if (node instanceof dag.Join) {
 			return this._handleJoin(column, node);
 		} else {
-				// other ops dont affect policy evaluation
+			// other ops dont affect policy evaluation
 			return this._continueTraversal(column, node);
 		}
 	}
@@ -175,6 +211,10 @@ class Verify {
 	}
 
 	verify() {
+		/*(
+		Entry point for policy verification. Verifies the policy against each column
+		individually, and returns true if all columns were successfully verified.
+		 */
 
 		let root = this._findRoot();
 		let columnsToVerify = root.outRel.columns
