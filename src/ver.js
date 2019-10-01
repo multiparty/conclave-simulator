@@ -61,8 +61,15 @@ class Verify {
 			}
 		}
 
-		// node isn't present in the output, so can be verified.
-		return column.verify();
+		/*
+		NOTE - we don't automatically verify the column here because it is possible
+		to perform some backwards inferrable operation on a revealable column
+		(e.g. - multiply) from a non-revealable column and then project out the
+		non-revealable column from the relation. Thus, even though this column is
+		not explicitly part of the output, we still treat it as such to avoid this kind
+		of exploit.
+		 */
+		return column;
 	}
 
 	_rewriteColumnForLeft(column, node) {
