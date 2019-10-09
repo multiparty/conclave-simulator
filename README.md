@@ -5,14 +5,14 @@ Interactive web-based simulator for the Conclave framework.
 
     ├─ src/           Source functionalities
     ├─ tests/         Test suite
-    │  └─ conclave/     Workflows to test resulting data
+    │  ├─ conclave/     Workflows to test resulting data
     │  └─ policy/       Workflow validation tests
     ├─ web/           UI root
-    │  └─ src/          Simulator include files
-    │  └─ dist/         Browser simulator bundle (simulator.js)
+    │  ├─ src/          Simulator include files
+    │  └─ dist/         Simulator bundle (simulator.js)
 
 ## Running the Prototype
-Go to `web/index.html` in a browser.
+Open `web/index.html` in a browser.
 
 ### Developing
 We use [Browserfy](http://browserify.org/) to bundle the simulator library.  Developers can intall it from [npm](https://www.npmjs.com) via `npm install -g browserify`.
