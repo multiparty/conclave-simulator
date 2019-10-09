@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta content="all" name="robots" />
+  <title>Conclave Simulator</title>
+  <!--link rel="shortcut icon" type="image/x-icon" href="data:image/x-icon;base64,iVBORw0KGgo="--><!-- Suppress browser favicon.ico request. -->
+  <!--link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.1.0/styles/vs.min.css"-->
+  <!--script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.1.0/highlight.min.js"></script-->
+  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Open+Sans">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.5/lodash.core.min.js"></script>
+  <script src="https://code.jquery.com/jquery-2.1.1.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/randomcolor/0.5.2/randomColor.min.js"></script>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <script src="https://lapets.github.io/polynomium/lib/polynomium.js"></script>
+  <script src="dist/simulator.js"></script>
+  <script src="index.js"></script>
+  <!-- <script src="lib/lodash.core.min.js"></script>
+  <script src="lib/jquery-2.1.1.js"></script>
+  <script src="lib/babel.min.js"></script>
+  <script src="lib/Chart.bundle.min.js"></script>
+  <script src="lib/randomColor.min.js"></script>
+  <script src="lib/plotly-latest.min.js"></script>
+  <script src="lib/polynomium.js"></script>
+  <script src="lib/imparse.js"></script>
+  <script src="lib/carousels.js"></script>
+  <script src="lib/costs.js"></script>
+  <script src="lib/metric.js"></script>
+  <script src="lib/plot.js"></script>
+  <script src="lib/setup.js"></script> -->
+  <style>
+  html, body { height:100%; margin:0; color:#000000; font-family:'Open Sans',sans-serif; }
+  body #content { z-index:100; min-height:100%; width:900px; margin:0 auto -90px; }
+  body #content #title { margin-bottom:8px; padding-top:50px; color:#C48C17; font-family:'Open Sans',sans-serif; font-size:48px; }
+  body #content #title > span { color:firebrick; }
+  body #content #description { padding-bottom:40px; font-size:16px; }
+  body #content #sheet { margin:0 auto; padding-bottom:40px; color:#000000; background-color:white; }
+  body #content #sheet .section { padding-top:20px; font-family:'Open Sans',sans-serif; font-size:16px; }
+  body #content #sheet .section h2 { font-family:'Open Sans',sans-serif; font-weight:normal; font-size:28px; color:#888888; }
+  body #content #sheet .section h3 { font-weight:normal; color:#666666; }
+  body #content #sheet .section > pre > code { padding:10px; font-size:14px; }
+  body #content #sheet .section > pre > code { background-color:#F1F1F1; }
+  body #content #sheet .section table { width:100%; font-size:12px; }
+  body #content #sheet .section table div { width:100%; border:1px solid #888888; padding:5px; font-family:Monospace; font-size:11px; }
+  body #content #sheet .section table div pre { margin:0; padding:0; }
+  body #content #sheet .section textarea { width:100%; height:100%; border:1px solid #888888; margin:0; padding:5px; font-size:12px; }
+  body #content #sheet .section ul { list-style:none; padding:8px 0px 8px 0px; margin:0; }
+  body #content #sheet .section li { padding-left:1.5em; text-indent:-1em; }
+  body #content #sheet .section li:before { content:"4"; color:#888888; font-family:'Webdings'; }
+  body #content #sheet .section a { color:firebrick; text-decoration:none; }
+  body #content #sheet .section a:hover { text-decoration:underline; }
+  body #content #footer_spacer { height:70px; }
+  body #footer { width:900px; height:70px; margin:0 auto; padding-top:15px; font-family:'Open Sans',sans-serif; font-size:13px; }
+  body #footer hr { border:0px; border-top:1px solid #DFDFDF; }
+  body #footer a { color:#000000; text-decoration:none; }
+  body #footer a:hover { text-decoration:underline; }
+  canvas{
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+  }
+  </style>
+  <base target="_parent">
+</head>
+<body onload="demo('selected_cost', 'selected_param', 'preprocessing', 'inp','out');">
+  <div id="content">
+    <div id="title">conclave simulator</div>
+    <div id="description">
+      An interactive web-based simulator for the Conclave framework.
+    </div>
+    <div id="sheet">
+      <div class="section">
+        <h2>Purpose</h2>
+        This page can simulate a Conclave workflow's preformance and verify that it is valid for a policy.
+        From carousels: This library makes it possible to rapidly assemble abstract metrics over subsets of JavaScript syntax.
+      </div>
+      <div class="section">
+        <h2>Examples</h2>
+        <p>
+          Below are a few interactive examples of how the library can be used to define a grammar and parse a concrete syntax string into a JSON representation of an abstract syntax tree. You can change the grammar or input string and see the results immediately.
+        </p>
+        <h3>Aggregation Example</h3>
+        <p>
+          Validate an agregation workflow between two user's and their data policies.
+        </p>
+        <td>
+          Input workflow:<br/>
+          <textarea id="workflow" rows="20" style="font-size: 10pt; font-family: monospace;" onkeyup="demo()">
+let colsInOne = [
+utils.defCol("a", "INTEGER", 1),
+utils.defCol("b", "INTEGER", 1)
+];
+
+let colsInTwo = [
+utils.defCol("a", "INTEGER", 2),
+utils.defCol("b", "INTEGER", 2)
+];
+
+let inOne = cc.create("inOne", colsInOne, new Set([1]));
+let inTwo = cc.create("inTwo", colsInTwo, new Set([2]));
+
+let c = cc.concatenate([inOne, inTwo], "con", ["a", "b"]);
+let a =
+cc.aggregate(c, "agg", ["a"], "b", "sum", "summed");
+
+let o = cc.collect(a, "opened", 1);
+
+return new Set([inOne, inTwo]);</textarea>
+        </td>
+        <table>
+          <br></br>
+          <tr>
+            <!-- <form>
+              <select id="selected_cost" onchange="demo('selected_cost', 'selected_param', 'preprocessing', 'inp','out');">
+                <option value="nothing">Select a Cost</option>
+                <option value="onlineMsg">onlineMsg</option>
+              </select>
+              <div id ="param" style ="display:none">
+                <select id="selected_param" onchange="demo('selected_cost', 'selected_param', 'preprocessing', 'inp','out');">
+                  <option value="nothing">Fix a Parameter</option>
+                  <option value="boardsize">boardsize</option>
+                  <option value="guesses">guesses</option>
+                </select>
+              </div>
+              <div id="checkbx">
+                <input type="checkbox" id="dynamic" checked>Read decorators for dynamic length arrays
+              </div>
+            </form>
+            <br/><br/> -->
+            <td>
+              <span style="font-size:16px;">Policy 1:</span>
+              <br/>
+              <textarea id="policyOne" rows="18" style="font-size: 10pt; font-family: monospace;" onkeyup="demo()">
+{
+  "fileName": "inOne",
+  "columns": {
+    "a": {
+      "read": true
+    },
+    "b": {
+      "read": false
+    }
+  }
+}
+</textarea>
+            </td>
+            <td>
+              <span style="font-size:16px;">Policy 2:</span>
+              <br/>
+              <textarea id="policyTwo" rows="18" style="font-size: 10pt; font-family: monospace;" onkeyup="demo()">
+{
+  "fileName": "inOne",
+  "columns": {
+    "a": {
+      "read": false
+    },
+    "b": {
+      "read": false
+    }
+  }
+}
+</textarea>
+            </td>
+          </tr>
+          <tr>
+            <td colspan="2">
+              Static analysis results:<br/>
+              <div><pre id="out"></pre></div>
+            </td>
+          </tr>
+          <table><br/><br/>
+            Performance:<br/>
+            <pre>(coming soon)</pre><div id="myPlot" style="width:100%; height:100%"></div>
+          </table>
+        </div>
+      </div><!-- /#sheet -->
+      <div id="footer_spacer"></div>
+    </div><!-- /#content -->
+    <div id="footer">
+      <hr/>
+      <a href="https://www.github.com/multiparty/conclave-simulator">Repository</a>
+    </div><!-- /#footer -->
+  </body>
+  </html>
