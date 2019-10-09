@@ -74,37 +74,36 @@
     <div id="sheet">
       <div class="section">
         <h2>Purpose</h2>
-        This page can simulate a Conclave workflow's preformance and verify that it is valid for a policy.
+        This page can simulate a Conclave workflow's preformance and verify whether it is valid for all provided policies.
         From carousels: This library makes it possible to rapidly assemble abstract metrics over subsets of JavaScript syntax.
       </div>
       <div class="section">
         <h2>Examples</h2>
-        <p>
+        <span>
           Below are a few interactive examples of how the library can be used to define a grammar and parse a concrete syntax string into a JSON representation of an abstract syntax tree. You can change the grammar or input string and see the results immediately.
-        </p>
+        </span><br/>
         <h3>Aggregation Example</h3>
-        <p>
+        <span>
           Validate an agregation workflow between two user's and their data policies.
-        </p>
+        </span><br/><br/>
         <td>
           Input workflow:<br/>
           <textarea id="workflow" rows="20" style="font-size: 10pt; font-family: monospace;" onkeyup="demo()">
 let colsInOne = [
-utils.defCol("a", "INTEGER", 1),
-utils.defCol("b", "INTEGER", 1)
+    utils.defCol("a", "INTEGER", 1),
+    utils.defCol("b", "INTEGER", 1)
 ];
 
 let colsInTwo = [
-utils.defCol("a", "INTEGER", 2),
-utils.defCol("b", "INTEGER", 2)
+    utils.defCol("a", "INTEGER", 2),
+    utils.defCol("b", "INTEGER", 2)
 ];
 
 let inOne = cc.create("inOne", colsInOne, new Set([1]));
 let inTwo = cc.create("inTwo", colsInTwo, new Set([2]));
 
 let c = cc.concatenate([inOne, inTwo], "con", ["a", "b"]);
-let a =
-cc.aggregate(c, "agg", ["a"], "b", "sum", "summed");
+let a = cc.aggregate(c, "agg", ["a"], "b", "sum", "summed");
 
 let o = cc.collect(a, "opened", 1);
 
@@ -166,7 +165,7 @@ return new Set([inOne, inTwo]);</textarea>
             </td>
           </tr>
           <tr>
-            <td colspan="2">
+            <td colspan="2"><br/>
               Static analysis results:<br/>
               <div><pre id="out"></pre></div>
             </td>
