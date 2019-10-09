@@ -16,6 +16,7 @@ Go to `web/index.html` in a browser.
 
 ### Developing
 To make any changes active, compile them to the simulator bundle in `web/dist/simulator.js`.
+
 ```shell
 browserify src/simulator.js --debug --s simulator -o dist/simulator.js
 ```
