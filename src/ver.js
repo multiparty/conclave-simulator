@@ -84,7 +84,7 @@ class Verify {
 		not explicitly part of the output, we still treat it as such to avoid this kind
 		of exploit.
 		 */
-		return column;
+		return this._continueTraversal(column, node);
 	}
 
 	_rewriteColumnForLeft(column, node) {
